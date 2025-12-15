@@ -1,0 +1,97 @@
+name: Code Quality and Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main, 'feature/**' ]
+
+jobs:
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pylint black mypy pytest pytest-cov
+    
+    - name: Check code formatting with Black
+      run: |
+        black --check src/after-review/ || echo "::warning::Code formatting issues found"
+    
+    - name: Lint with Pylint
+      run: |
+        pylint src/after-review/ --exit-zero --output-format=text
+    
+    - name: Type check with MyPy
+      run: |
+        mypy src/after-review/ --ignore-missing-imports || echo "::warning::Type check issues found"
+  
+  tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov
+    
+    - name: Run tests with coverage
+      run: |
+        pytest tests/ -v --cov=src/after-review --cov-report=term-missing
+    
+    - name: Generate coverage report
+      run: |
+        pytest tests/ --cov=src/after-review --cov-report=html
+    
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: htmlcov/
+
+  security:
+    name: Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install bandit
+      run: |
+        pip install bandit
+    
+    - name: Run security scan
+      run: |
+        bandit -r src/after-review/ -f json -o bandit-report.json || true
+    
+    - name: Upload security report
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-report
+        path: bandit-report.json

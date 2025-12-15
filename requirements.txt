@@ -1,0 +1,13 @@
+# Task Manager Requirements
+
+# No external dependencies required for basic functionality
+# Python 3.8+ includes sqlite3 by default
+
+# Optional: for testing
+pytest==7.4.3
+pytest-cov==4.1.0
+
+# Optional: for code quality
+pylint==3.0.3
+black==23.12.1
+mypy==1.7.1
